@@ -5,6 +5,18 @@ import { ActivityIndicator, Alert, ScrollView, StyleSheet, TouchableOpacity, Vie
 import { Card, IconButton, Text } from 'react-native-paper';
 import useNotes from '../hooks/useNotes';
 
+const theme = {
+  colors: {
+    primary: '#1976D2',
+    accent: '#FF6D00',
+    background: '#121212',
+    surface: '#1E1E1E',
+    text: '#E0E0E0',
+    placeholder: '#757575',
+    error: '#CF6679',
+  }
+};
+
 export default function NotesListScreen() {
   const router = useRouter();
   const { notes, isLoading, error, deleteNote, loadNotes } = useNotes();
@@ -21,10 +33,13 @@ export default function NotesListScreen() {
 
   const handleDeleteNote = async (noteId: number) => {
     Alert.alert(
-      'Eliminar Nota',
-      '¿Estás seguro de que quieres eliminar esta nota?',
+      'Confirmar Eliminación',
+      '¿Estás seguro de que deseas eliminar esta nota permanentemente?',
       [
-        { text: 'Cancelar', style: 'cancel' },
+        { 
+          text: 'Cancelar', 
+          style: 'cancel',
+        },
         { 
           text: 'Eliminar', 
           style: 'destructive',
@@ -32,18 +47,19 @@ export default function NotesListScreen() {
             try {
               await deleteNote(noteId);
             } catch (error) {
-              Alert.alert('Error', 'No se pudo eliminar la nota');
+              Alert.alert('Error', 'Ocurrió un problema al eliminar la nota');
             }
           }
         }
-      ]
+      ],
+      { cancelable: true }
     );
   };
 
   if (isLoading) {
     return (
       <View style={styles.centerContainer}>
-        <ActivityIndicator animating={true} size="large" />
+        <ActivityIndicator animating={true} size="large" color={theme.colors.primary} />
       </View>
     );
   }
@@ -51,6 +67,7 @@ export default function NotesListScreen() {
   if (error) {
     return (
       <View style={styles.centerContainer}>
+        <MaterialIcons name="error-outline" size={48} color={theme.colors.error} />
         <Text style={styles.errorText}>{error}</Text>
       </View>
     );
@@ -58,17 +75,43 @@ export default function NotesListScreen() {
 
   return (
     <View style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContainer}>
-        {isLoading ? (
-          <Text>Cargando notas...</Text>
-        ) : notes.length === 0 ? (
-          <Text style={styles.emptyText}>No hay notas creadas</Text>
+      <View style={styles.header}>
+        <Text variant="headlineMedium" style={styles.headerText}>
+          Mis Notas
+        </Text>
+        <Text variant="bodyMedium" style={styles.subHeaderText}>
+          {notes.length} {notes.length === 1 ? 'nota' : 'notas'}
+        </Text>
+      </View>
+
+      <ScrollView 
+        contentContainerStyle={styles.scrollContainer}
+        showsVerticalScrollIndicator={false}
+      >
+        {notes.length === 0 ? (
+          <View style={styles.emptyState}>
+            <MaterialIcons name="note-add" size={64} color={theme.colors.placeholder} />
+            <Text style={styles.emptyText}>No hay notas creadas</Text>
+            <Text style={styles.emptySubText}>Presiona el botón + para crear una nueva</Text>
+          </View>
         ) : (
           notes.map(note => (
-            <Card key={note.id} style={styles.card}>
+            <Card key={note.id} style={styles.card} mode="elevated">
               <Card.Title
                 title={note.titulo}
+                titleNumberOfLines={1}
                 titleStyle={styles.cardTitle}
+                subtitle={`Última actualización`}
+                subtitleStyle={styles.cardSubtitle}
+                right={() => (
+                  <View style={styles.cardStatus}>
+                    <MaterialIcons 
+                      name={note.important ? "star" : "star-border"} 
+                      size={24} 
+                      color={note.important ? theme.colors.accent : theme.colors.placeholder} 
+                    />
+                  </View>
+                )}
               />
               <Card.Content>
                 <Text 
@@ -76,34 +119,39 @@ export default function NotesListScreen() {
                   ellipsizeMode="tail"
                   style={styles.cardContent}
                 >
-                  {note.descripcion.replace(/<[^>]*>/g, '').substring(0, 200)}
+                  {note.descripcion.replace(/<[^>]*>/g, '')}
                 </Text>
               </Card.Content>
               <Card.Actions style={styles.cardActions}>
                 <IconButton
                   icon="pencil"
-                  size={24}
+                  size={22}
+                  iconColor={theme.colors.primary}
                   onPress={() => handleEditNote(note.id)}
                   style={styles.actionButton}
                 />
                 <IconButton
                   icon="delete"
-                  size={24}
+                  size={22}
+                  iconColor={theme.colors.error}
                   onPress={() => handleDeleteNote(note.id)}
                   style={styles.actionButton}
                 />
+                <View style={styles.spacer} />
+                <Text style={styles.dateText}>
+                  {new Date(note.fecha).toLocaleDateString()}
+                </Text>
               </Card.Actions>
             </Card>
           ))
         )}
       </ScrollView>
       
-      {/* Floating Action Button */}
       <TouchableOpacity 
         style={styles.fab}
         onPress={() => router.push('/create-note')}
       >
-        <MaterialIcons name="add" size={24} color="white" />
+        <MaterialIcons name="add" size={28} color="white" />
       </TouchableOpacity>
     </View>
   );
@@ -114,62 +162,107 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: theme.colors.background,
   },
   errorText: {
-    color: 'red',
+    color: theme.colors.error,
     fontSize: 16,
-  },
-  statusContainer: {
-    marginRight: 16,
-  },
-  completedText: {
-    color: 'green',
-  },
-  pendingText: {
-    color: 'orange',
+    marginTop: 16,
+    textAlign: 'center',
+    maxWidth: '80%',
   },
   container: {
     flex: 1,
-    padding: 16,
-    backgroundColor: '#f5f5f5',
+    paddingHorizontal: 16,
+    backgroundColor: theme.colors.background,
+  },
+  header: {
+    paddingVertical: 24,
+    paddingHorizontal: 8,
+  },
+  headerText: {
+    color: theme.colors.text,
+    fontWeight: '600',
+  },
+  subHeaderText: {
+    color: theme.colors.placeholder,
+    marginTop: 4,
   },
   scrollContainer: {
-    paddingBottom: 80,
+    paddingBottom: 100,
   },
   card: {
     marginBottom: 16,
-    elevation: 3,
+    backgroundColor: theme.colors.surface,
+    borderRadius: 12,
+    overflow: 'hidden',
   },
   cardTitle: {
+    color: theme.colors.text,
+    fontWeight: '600',
     fontSize: 18,
-    fontWeight: 'bold',
+  },
+  cardSubtitle: {
+    color: theme.colors.placeholder,
+    fontSize: 12,
   },
   cardContent: {
-    color: '#555',
-    marginTop: 8,
+    color: theme.colors.text,
+    opacity: 0.9,
+    lineHeight: 22,
   },
   cardActions: {
-    justifyContent: 'flex-end',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderTopWidth: 1,
+    borderTopColor: '#2D2D2D',
+  },
+  cardStatus: {
+    paddingRight: 16,
   },
   actionButton: {
     margin: 0,
   },
+  spacer: {
+    flex: 1,
+  },
+  dateText: {
+    color: theme.colors.placeholder,
+    fontSize: 12,
+  },
+  emptyState: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 80,
+  },
   emptyText: {
+    color: theme.colors.text,
+    marginTop: 16,
+    fontSize: 18,
+    fontWeight: '500',
+  },
+  emptySubText: {
+    color: theme.colors.placeholder,
+    marginTop: 8,
     textAlign: 'center',
-    marginTop: 20,
-    fontSize: 16,
-    color: '#666',
+    maxWidth: '70%',
   },
   fab: {
     position: 'absolute',
-    right: 20,
-    bottom: 20,
-    backgroundColor: '#6200ee',
+    right: 24,
+    bottom: 24,
+    backgroundColor: theme.colors.primary,
     width: 56,
     height: 56,
     borderRadius: 28,
     alignItems: 'center',
     justifyContent: 'center',
-    elevation: 4,
+    elevation: 6,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
   },
 });

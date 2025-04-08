@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { StyleSheet, View, TouchableOpacity, KeyboardAvoidingView, Platform, Dimensions } from 'react-native';
 import { TextInput, Button, Text, Title, Provider as PaperProvider } from 'react-native-paper';
-import { FontAwesome5 } from '@expo/vector-icons';
+import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter, Stack } from 'expo-router';
 import { MotiView } from 'moti';
 import { api } from '../services/api';
@@ -9,19 +9,21 @@ import { MD3LightTheme as DefaultTheme } from 'react-native-paper';
 
 const { width } = Dimensions.get('window');
 
-// Definimos un tema personalizado para react-native-paper
+// Tema profesional con colores oscuros y acentos
 const theme = {
   ...DefaultTheme,
   colors: {
     ...DefaultTheme.colors,
-    text: '#ffffff',
-    primary: '#ffffff',
-    onSurface: '#ffffff',
-    placeholder: '#cccccc',
-    background: 'transparent',
-    surface: 'transparent', // Fondo de los componentes como TextInput
-    surfaceVariant: 'transparent', // Fondo en estado no enfocado
+    primary: '#1976D2', // Azul profesional
+    accent: '#FF6D00', // Naranja de acento
+    background: '#121212', // Fondo oscuro
+    surface: '#1E1E1E', // Superficie de componentes
+    text: '#E0E0E0', // Texto claro
+    placeholder: '#757575', // Placeholder
+    onSurface: '#FFFFFF', // Sobre superficie
+    surfaceVariant: '#2D2D2D', // Variante de superficie
   },
+  roundness: 8, // Bordes redondeados
 };
 
 export default function RegisterScreen() {
@@ -36,8 +38,8 @@ export default function RegisterScreen() {
 
   const handleRegister = async () => {
     if (!correo || !password || !confirmar) return alert('Todos los campos son obligatorios');
-    if (password !== confirmar) return alert('Las contraseñas no son iguales');
-    if (!isValidEmail(correo)) return alert('formato Correo electrónico no inválido');
+    if (password !== confirmar) return alert('Las contraseñas no coinciden');
+    if (!isValidEmail(correo)) return alert('Formato de correo electrónico inválido');
     if (password.length < 8) return alert('La contraseña debe tener al menos 8 caracteres');
 
     setLoading(true);
@@ -65,9 +67,13 @@ export default function RegisterScreen() {
             transition={{ type: 'timing', duration: 700 }}
             style={styles.leftPanel}
           >
-            <FontAwesome5 name="user-shield" size={80} color="#ffffff" />
-            <Text style={styles.brandText}>Crea tu cuenta</Text>
-            <Text style={styles.brandSub}>Regístrate para agragar notas</Text>
+            <MaterialIcons name="security" size={90} color="#1976D2" style={styles.icon} />
+            <Text variant="headlineMedium" style={styles.brandText}>
+              Registro de Cuenta
+            </Text>
+            <Text variant="bodyMedium" style={styles.brandSub}>
+              Crea credenciales seguras para acceder al sistema
+            </Text>
           </MotiView>
 
           <MotiView
@@ -76,7 +82,7 @@ export default function RegisterScreen() {
             transition={{ type: 'timing', duration: 800 }}
             style={styles.rightPanel}
           >
-            <Title style={styles.title}>Ingresa tus datos</Title>
+            <Title style={styles.title}>Información Requerida</Title>
 
             <TextInput
               label="Correo electrónico"
@@ -85,56 +91,44 @@ export default function RegisterScreen() {
               keyboardType="email-address"
               autoCapitalize="none"
               style={styles.input}
-              textColor="#ffffff"
-              underlineColor="#ffffff" // Línea inferior blanca
+              mode="outlined"
+              left={<TextInput.Icon icon="email" />}
               theme={{
                 colors: {
-                  primary: '#ffffff',
-                  placeholder: '#cccccc',
-                  background: 'transparent',
-                  surface: 'transparent', // Fondo transparente
-                  surfaceVariant: 'transparent', // Fondo en estado no enfocado
+                  primary: theme.colors.primary,
                 },
               }}
-              placeholderTextColor="#cccccc"
             />
+
             <TextInput
               label="Contraseña"
               value={password}
               onChangeText={setPassword}
               secureTextEntry
               style={styles.input}
-              textColor="#ffffff"
-              underlineColor="#ffffff" // Línea inferior blanca
+              mode="outlined"
+              left={<TextInput.Icon icon="lock" />}
+              right={<TextInput.Icon icon="eye" />}
               theme={{
                 colors: {
-                  primary: '#ffffff',
-                  placeholder: '#cccccc',
-                  background: 'transparent',
-                  surface: 'transparent',
-                  surfaceVariant: 'transparent',
+                  primary: theme.colors.primary,
                 },
               }}
-              placeholderTextColor="#cccccc"
             />
+
             <TextInput
               label="Confirmar contraseña"
               value={confirmar}
               onChangeText={setConfirmar}
               secureTextEntry
               style={styles.input}
-              textColor="#ffffff"
-              underlineColor="#ffffff" // Línea inferior blanca
+              mode="outlined"
+              left={<TextInput.Icon icon="lock-check" />}
               theme={{
                 colors: {
-                  primary: '#ffffff',
-                  placeholder: '#cccccc',
-                  background: 'transparent',
-                  surface: 'transparent',
-                  surfaceVariant: 'transparent',
+                  primary: theme.colors.primary,
                 },
               }}
-              placeholderTextColor="#cccccc"
             />
 
             <Button
@@ -144,21 +138,21 @@ export default function RegisterScreen() {
               disabled={loading}
               style={styles.button}
               labelStyle={styles.buttonLabel}
-              theme={{
-                colors: {
-                  primary: '#6200ee',
-                },
-              }}
+              icon="account-plus"
             >
-              Crear cuenta
+              Registrar Cuenta
             </Button>
 
-            <TouchableOpacity onPress={() => router.replace('/')}>
-              <Text style={styles.link}>
-                <Text>¿Ya tienes cuenta? </Text>
-                <Text style={styles.linkBold}>Inicia sesión</Text>
+            <View style={styles.footer}>
+              <Text variant="bodyMedium" style={styles.footerText}>
+                ¿Ya tienes una cuenta?
               </Text>
-            </TouchableOpacity>
+              <TouchableOpacity onPress={() => router.replace('/')}>
+                <Text variant="bodyMedium" style={styles.footerLink}>
+                  Iniciar Sesión
+                </Text>
+              </TouchableOpacity>
+            </View>
           </MotiView>
         </View>
       </KeyboardAvoidingView>
@@ -169,64 +163,72 @@ export default function RegisterScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000080',
-    paddingTop: 50,
+    backgroundColor: theme.colors.background,
   },
   splitContainer: {
     flex: 1,
     flexDirection: width > 600 ? 'row' : 'column',
-    padding: 20,
-    gap: 30,
+    padding: 24,
+    gap: 40,
   },
   leftPanel: {
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: width > 600 ? 0 : 20,
-    width: width > 600 ? '35%' : '100%',
+    width: width > 600 ? '40%' : '100%',
+    padding: 20,
   },
   rightPanel: {
     flex: 1,
+    justifyContent: 'center',
+    maxWidth: 500,
+    alignSelf: 'center',
+    width: '100%',
   },
   title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 20,
-    textAlign: 'left',
-    color: '#ffffff',
+    marginBottom: 32,
+    color: theme.colors.text,
+    fontWeight: '600',
   },
   input: {
-    marginBottom: 14,
-    backgroundColor: 'transparent',
+    marginBottom: 20,
+    backgroundColor: theme.colors.surface,
   },
   button: {
-    marginTop: 10,
-    borderRadius: 10,
-    paddingVertical: 8,
+    marginTop: 16,
+    borderRadius: theme.roundness,
+    paddingVertical: 10,
+    backgroundColor: theme.colors.primary,
   },
   buttonLabel: {
     fontWeight: 'bold',
-    color: '#ffffff',
-  },
-  link: {
-    marginTop: 16,
-    textAlign: 'center',
-    color: '#ffffff',
-  },
-  linkBold: {
-    fontWeight: 'bold',
-    color: '#ffffff',
+    fontSize: 16,
   },
   brandText: {
-    fontSize: 22,
-    fontWeight: '700',
-    marginTop: 20,
-    color: '#ffffff',
+    marginTop: 24,
+    marginBottom: 8,
+    color: theme.colors.text,
+    fontWeight: '600',
+    textAlign: 'center',
   },
   brandSub: {
-    fontSize: 14,
-    marginTop: 8,
+    color: theme.colors.placeholder,
     textAlign: 'center',
-    paddingHorizontal: 10,
-    color: '#ffffff',
+    paddingHorizontal: 20,
+  },
+  icon: {
+    marginBottom: 16,
+  },
+  footer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginTop: 24,
+    gap: 8,
+  },
+  footerText: {
+    color: theme.colors.placeholder,
+  },
+  footerLink: {
+    color: theme.colors.primary,
+    fontWeight: '600',
   },
 });

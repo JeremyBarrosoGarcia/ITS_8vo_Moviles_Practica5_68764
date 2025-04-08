@@ -11,17 +11,16 @@ export default function CreateNoteScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
   const { id } = params;
-  
+
   const richText = useRef<CustomRichEditor>(null);
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [completed, setCompleted] = useState(false);
-  
+
   const { notes, saveNote, updateNote } = useNotes();
 
   useEffect(() => {
     if (id) {
-      // Modo edición: cargar la nota existente
       const noteId = Number(id);
       const noteToEdit = notes.find(note => note.id === noteId);
       if (noteToEdit) {
@@ -42,18 +41,16 @@ export default function CreateNoteScreen() {
 
     try {
       if (id) {
-        // Modo edición
-        await updateNote(Number(id), { 
-          titulo: title, 
+        await updateNote(Number(id), {
+          titulo: title,
           descripcion: content,
-          completada: completed
+          completada: completed,
         });
       } else {
-        // Modo creación
         await saveNote({
           titulo: title.trim(),
           descripcion: content,
-          completada: completed
+          completada: completed,
         });
       }
       router.back();
@@ -66,13 +63,13 @@ export default function CreateNoteScreen() {
   return (
     <View style={styles.container}>
       <ScrollView
-        style={styles.container}
+        style={styles.scrollContainer}
         nestedScrollEnabled={false}
       >
         <TextInput
           style={styles.titleInput}
           placeholder="Título de la nota"
-          placeholderTextColor="#999"
+          placeholderTextColor="#B0B0B0"
           value={title}
           onChangeText={setTitle}
         />
@@ -88,8 +85,8 @@ export default function CreateNoteScreen() {
 
         <RichToolbar
           editor={richText}
-          selectedIconTint="#873c1e"
-          iconTint="#312921"
+          selectedIconTint="#FFD700" // Gold for selected icons
+          iconTint="#F5F5F5" // White for unselected icons
           scalesPageToFit={Platform.OS === 'android'}
           actions={[
             actions.setBold,
@@ -109,12 +106,11 @@ export default function CreateNoteScreen() {
           style={styles.toolbar}
         />
       </ScrollView>
-      {/* Floating Action Button */}
       <TouchableOpacity
         style={styles.fab}
         onPress={() => handleSave()}
       >
-        <MaterialIcons name="save" size={24} color="white" />
+        <MaterialIcons name="save" size={28} color="#1A1A1A" />
       </TouchableOpacity>
     </View>
   );
@@ -123,53 +119,52 @@ export default function CreateNoteScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: 0,
-    paddingHorizontal: 4
+    backgroundColor: '#1A1A1A', // Dark charcoal background
   },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
-  },
-  formContainer: {
+  scrollContainer: {
     flex: 1,
-    paddingHorizontal: 15,
+    paddingHorizontal: 16,
+    paddingTop: 16,
   },
   titleInput: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    marginVertical: 15,
-    color: '#000',
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#F5F5F5', // Soft white for text
+    marginVertical: 12,
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#FFD700', // Gold underline for elegance
+    letterSpacing: 0.5,
   },
   editor: {
     flex: 1,
-    minHeight: 300,
+    minHeight: 320,
+    backgroundColor: '#2A2A2A', // Darker editor background
     borderWidth: 1,
-    borderColor: '#eee',
-    borderRadius: 5,
-    padding: 10,
-    marginBottom: 10,
+    borderColor: '#3A3A3A', // Subtle border
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 16,
+    color: '#F5F5F5', // White text inside editor
   },
   toolbar: {
-    backgroundColor: '#f5f5f5',
-    borderColor: '#eee',
+    backgroundColor: '#2A2A2A', // Matches editor for consistency
+    borderColor: '#3A3A3A',
     borderWidth: 1,
-    borderRadius: 5,
-    marginBottom: 20,
+    borderRadius: 8,
+    marginBottom: 80, // Extra space for FAB
+    paddingVertical: 4,
   },
   fab: {
     position: 'absolute',
-    right: 20,
-    bottom: 20,
-    backgroundColor: '#6200ee',
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+    right: 24,
+    bottom: 24,
+    backgroundColor: '#FFD700', // Gold for a premium touch
+    width: 60,
+    height: 60,
+    borderRadius: 30,
     alignItems: 'center',
     justifyContent: 'center',
-    elevation: 4,
+    elevation: 6, // Stronger shadow for depth
   },
 });
