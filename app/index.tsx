@@ -1,175 +1,133 @@
-import { MaterialIcons } from '@expo/vector-icons';
-import { useFocusEffect, useRouter } from 'expo-router';
-import React, { useCallback } from 'react';
-import { ActivityIndicator, Alert, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
-import { Card, IconButton, Text } from 'react-native-paper';
-import useNotes from '../hooks/useNotes';
+import React, { useState } from 'react';
+import { View, StyleSheet, KeyboardAvoidingView, TouchableOpacity, ImageBackground } from 'react-native';
+import { TextInput, Button, Card, Text, Title } from 'react-native-paper';
+import { useRouter, Stack } from 'expo-router';
+import { MotiView } from 'moti';
+import { api } from '../services/api';
 
-export default function NotesListScreen() {
+export default function LoginScreen() {
   const router = useRouter();
-  const { notes, isLoading, error, deleteNote, loadNotes } = useNotes();
+  const [correo, setCorreo] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  useFocusEffect(
-    useCallback(() => {
-      loadNotes();
-    }, [loadNotes])
-  );
+  const isValidEmail = (email: string) =>
+    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
-  const handleEditNote = (noteId: number) => {
-    router.push(`/create-note?id=${noteId}`);
+  const handleLogin = async () => {
+    if (!correo || !password) {
+      return alert('Todos los campos son obligatorios');
+    }
+
+    if (!isValidEmail(correo)) {
+      return alert('Correo electrónico inválido');
+    }
+
+    setLoading(true);
+    try {
+      await api.login(correo, password);
+      router.replace('/inicio');
+    } catch (error) {
+      alert('Usuario o contraseña incorrecto');
+    } finally {
+      setLoading(false);
+    }
   };
-
-  const handleDeleteNote = async (noteId: number) => {
-    Alert.alert(
-      'Eliminar Nota',
-      '¿Estás seguro de que quieres eliminar esta nota?',
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        { 
-          text: 'Eliminar', 
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await deleteNote(noteId);
-            } catch (error) {
-              Alert.alert('Error', 'No se pudo eliminar la nota');
-            }
-          }
-        }
-      ]
-    );
-  };
-
-  if (isLoading) {
-    return (
-      <View style={styles.centerContainer}>
-        <ActivityIndicator animating={true} size="large" />
-      </View>
-    );
-  }
-
-  if (error) {
-    return (
-      <View style={styles.centerContainer}>
-        <Text style={styles.errorText}>{error}</Text>
-      </View>
-    );
-  }
 
   return (
-    <View style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContainer}>
-        {isLoading ? (
-          <Text>Cargando notas...</Text>
-        ) : notes.length === 0 ? (
-          <Text style={styles.emptyText}>No hay notas creadas</Text>
-        ) : (
-          notes.map(note => (
-            <Card key={note.id} style={styles.card}>
-              <Card.Title
-                title={note.titulo}
-                titleStyle={styles.cardTitle}
-              />
-              <Card.Content>
-                <Text 
-                  numberOfLines={3} 
-                  ellipsizeMode="tail"
-                  style={styles.cardContent}
-                >
-                  {note.descripcion.replace(/<[^>]*>/g, '').substring(0, 200)}
-                </Text>
-              </Card.Content>
-              <Card.Actions style={styles.cardActions}>
-                <IconButton
-                  icon="pencil"
-                  size={24}
-                  onPress={() => handleEditNote(note.id)}
-                  style={styles.actionButton}
-                />
-                <IconButton
-                  icon="delete"
-                  size={24}
-                  onPress={() => handleDeleteNote(note.id)}
-                  style={styles.actionButton}
-                />
-              </Card.Actions>
-            </Card>
-          ))
-        )}
-      </ScrollView>
-      
-      {/* Floating Action Button */}
-      <TouchableOpacity 
-        style={styles.fab}
-        onPress={() => router.push('/create-note')}
+    <>
+      <Stack.Screen options={{ headerShown: false }} />
+      <ImageBackground
+        style={styles.background}
+        blurRadius={3}
       >
-        <MaterialIcons name="add" size={24} color="white" />
-      </TouchableOpacity>
-    </View>
+        <KeyboardAvoidingView behavior="padding" style={styles.overlay}>
+          <MotiView
+            from={{ opacity: 0, translateY: 50 }}
+            animate={{ opacity: 1, translateY: 0 }}
+            transition={{ type: 'timing', duration: 800 }}
+          >
+            <Card style={styles.card}>
+              <Card.Content>
+                <Title style={styles.title}>Bienvenido a tus notas</Title>
+                <Text style={styles.subtitle}>Notas en React Native CHUC</Text>
+
+                <TextInput
+                  label="Correo electrónico"
+                  value={correo}
+                  onChangeText={setCorreo}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  style={styles.input}
+                />
+                <TextInput
+                  label="Contraseña"
+                  value={password}
+                  onChangeText={setPassword}
+                  secureTextEntry
+                  style={styles.input}
+                />
+
+                <Button
+                  mode="contained"
+                  onPress={handleLogin}
+                  loading={loading}
+                  disabled={loading}
+                  style={styles.button}
+                  labelStyle={{ fontWeight: 'bold' }}
+                >
+                  Iniciar sesión
+                </Button>
+
+                <TouchableOpacity onPress={() => router.replace('/Register')}>
+                  <Text style={styles.link}>¿Eres nuevo? <Text style={{ fontWeight: 'bold' }}>Crear cuenta</Text></Text>
+                </TouchableOpacity>
+              </Card.Content>
+            </Card>
+          </MotiView>
+        </KeyboardAvoidingView>
+      </ImageBackground>
+    </>
   );
 }
 
 const styles = StyleSheet.create({
-  centerContainer: {
+  background: {
+    flex: 1,
+    resizeMode: 'cover',
+    backgroundColor: '#000080',
+  },
+  overlay: {
     flex: 1,
     justifyContent: 'center',
-    alignItems: 'center',
-  },
-  errorText: {
-    color: 'red',
-    fontSize: 16,
-  },
-  statusContainer: {
-    marginRight: 16,
-  },
-  completedText: {
-    color: 'green',
-  },
-  pendingText: {
-    color: 'orange',
-  },
-  container: {
-    flex: 1,
-    padding: 16,
-    backgroundColor: '#f5f5f5',
-  },
-  scrollContainer: {
-    paddingBottom: 80,
+    padding: 24,
   },
   card: {
-    marginBottom: 16,
-    elevation: 3,
+    borderRadius: 24,
+    elevation: 10,
+    padding: 20,
   },
-  cardTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  cardContent: {
-    color: '#555',
-    marginTop: 8,
-  },
-  cardActions: {
-    justifyContent: 'flex-end',
-  },
-  actionButton: {
-    margin: 0,
-  },
-  emptyText: {
+  title: {
+    fontSize: 28,
+    fontWeight: '900',
     textAlign: 'center',
-    marginTop: 20,
-    fontSize: 16,
-    color: '#666',
+    marginBottom: 4,
   },
-  fab: {
-    position: 'absolute',
-    right: 20,
-    bottom: 20,
-    backgroundColor: '#6200ee',
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    alignItems: 'center',
-    justifyContent: 'center',
-    elevation: 4,
+  subtitle: {
+    fontSize: 16,
+    textAlign: 'center',
+    marginBottom: 24,
+  },
+  input: {
+    marginVertical: 8,
+  },
+  button: {
+    marginTop: 16,
+    borderRadius: 12,
+    paddingVertical: 8,
+  },
+  link: {
+    marginTop: 16,
+    textAlign: 'center',
   },
 });
